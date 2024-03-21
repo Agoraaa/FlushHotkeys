@@ -8,6 +8,7 @@ Some useful hotkeys for [Balatro](https://store.steampowered.com/app/2379780/Bal
 | `D` | Select cards with the same rank. |
 | `S` | Invert selected cards.           |
 
+Pressing the hotkeys multiple times cycles through the options.
 ## Installation
 Follow instructions from [here](https://github.com/Steamopollys/Steamodded?tab=readme-ov-file#how-to-install-a-mod).
 
