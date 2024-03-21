@@ -10,60 +10,60 @@ local flush_hotkey = "f"
 local pair_hotkey = "d"
 local invert_selection_hotkey = "s"
 
+-- 1, 2, 3 are LMB, RMB, and middle mouse button respectively. If you have additional mouse buttons try setting
+-- the number to 4, 5...
+local mouse_flush_hotkey = 400
+local mouse_pair_hotkey = 400
+local mouse_invert_hotkey = 400
+
 local keyupdate_ref = Controller.key_press_update
 function Controller.key_press_update(self, key, dt)
   keyupdate_ref(self, key, dt)
 
   if G.STATE == G.STATES.SELECTING_HAND then
     if key == flush_hotkey then
-      
       select_with_property(get_visible_suit)
     end
     if key == pair_hotkey then
       select_with_property(get_visible_rank)
     end
     if key == invert_selection_hotkey then
-      local unselected = filter(G.hand.cards, function(x) return -1 == indexOf(G.hand.highlighted,
-                                                                              function(y) return y == x end) end)
-      table.sort(unselected, function(x,y) return calculate_importance(x) < calculate_importance(y) end)
-      select_hand(take(unselected, 5))
+      invert_selection()
     end
     if key == "g" then
       first, second = G.hand.highlighted[1], G.hand.highlighted[2]
       if calculate_importance(first) > calculate_importance(second) then
-        select_hand({second})
+        select_hand({ second })
       else
-        select_hand({first})
+        select_hand({ first })
       end
     end
   end
 end
---[[
+
 local mouseref = love.mousepressed
 function love.mousepressed(x, y, button, istouch, presses)
   mouseref(x, y, button, istouch, presses)
-  if button > 2 then
-    if G.STATE == G.STATES.SELECTING_HAND then
-      if true then
-        select_with_property(get_visible_suit)
-      end
-      if key == pair_hotkey then
-        select_with_property(get_visible_rank)
-      end
-      if key == invert_selection_hotkey then
-        select_hand( -- this really shouldnt be a one-liner
-          take(
-            filter(G.hand.cards,
-              function(x)
-                return -1 == indexOf(G.hand.highlighted,
-                  function(y) return y == x end)
-              end)
-            , 5))
-      end
+  if G.STATE == G.STATES.SELECTING_HAND then
+    if button == mouse_flush_hotkey then
+      select_with_property(get_visible_suit)
+    elseif button == mouse_pair_hotkey then
+      select_with_property(get_visible_rank)
+    elseif button == mouse_invert_hotkey then
+      invert_selection()
     end
   end
 end
-]]
+
+function invert_selection()
+  local unselected = filter(G.hand.cards, function(x)
+    return -1 == indexOf(G.hand.highlighted,
+      function(y) return y == x end)
+  end)
+  table.sort(unselected, function(x, y) return calculate_importance(x) < calculate_importance(y) end)
+  select_hand(take(unselected, 5))
+end
+
 function select_with_property(property_func)
   local possible_hands = possible_hands(G.hand.cards, property_func)
   if not next(possible_hands) then return end
@@ -156,21 +156,19 @@ end
 
 function calculate_importance(card)
   local res = 0
+  if card.flipped then return -20 end
   if card.seal and not card.debuff then
     if card.seal == "Gold" then
       res = res + 50
-    
     elseif card.seal == "Blue" then
       res = res + 10 -- we hate blue amirite
-    
     elseif card.seal == "Red" then
       res = res + 50
-    
     elseif card.seal == "Purple" then
       res = res - 50
     end
   end
-  
+
   if card.edition and not card.debuff then
     res = res + (card.edition.holo and 70 or 0) + (card.edition.foil and 60 or 0) +
         (card.edition.polychrome and 75 or 0)
@@ -179,22 +177,16 @@ function calculate_importance(card)
   if card.ability and not card.debuff then
     if card.ability.name == "Steel Card" then
       res = res + 20
-    
     elseif card.ability.name == "Glass Card" then
       res = res + 20
-    
     elseif card.ability.name == "Wild Card" then
       res = res + 15
-    
     elseif card.ability.name == "Bonus" then
       res = res + 20
-    
     elseif card.ability.name == "Mult" then
       res = res + 20
-    
     elseif card.ability.name == "Stone Card" then
       res = res + 20
-    
     elseif card.ability.name == "Lucky Card" then
       res = res + 20
     end
