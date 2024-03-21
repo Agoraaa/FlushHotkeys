@@ -14,7 +14,7 @@ local invert_selection_hotkey = "s"
 -- the number to 4, 5...
 local mouse_flush_hotkey = 400
 local mouse_pair_hotkey = 400
-local mouse_invert_hotkey = 400
+local mouse_invert_hotkey = 3
 
 local keyupdate_ref = Controller.key_press_update
 function Controller.key_press_update(self, key, dt)
@@ -49,6 +49,20 @@ function love.mousepressed(x, y, button, istouch, presses)
     end
   end
 end
+
+--local wheelmovedref = love.wheelmoved
+function love.wheelmoved(x, y)
+  --wheelmovedref(x,y)
+  if G.STATE == G.STATES.SELECTING_HAND then
+    if y > 0 then
+      local best_hands = best_ofakinds(G.hand.cards)
+      select_hand(next_best_oak(best_hands, G.hand.highlighted))
+    elseif y < 0 then
+      select_with_property(get_visible_suit)
+    end
+  end
+end
+
 
 function next_best_oak(possible_hands, curr_hand)
   if #possible_hands == 1 then

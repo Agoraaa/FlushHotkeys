@@ -23,6 +23,16 @@ local flush_hotkey = "q"
 ```
 
 For mouse buttons, change `local mouse_flush_hotkey = 400` into `local mouse_flush_hotkey = 3` which sets the hotkey into Middle Mouse Button. If you have a custom 4th button change it to `4` etc. This does not unbind the corresponding keyboard hotkey.
+
+## Scroll Wheel Mode
+Use the `FlushHotkeys-scrollwheel.lua` file to enable using scroll wheel. This will **disable all other functionality** for the scroll wheel.
+
+| Key | Use                              |
+| :-: | -------------------------------- |
+| `Wheel Down` | Select cards with the same suit. |
+| `Wheel Up` | Select full houses, four of a kinds etc. |
+| `Middle Mouse Button` | Invert selected cards.           |
+
 ## Contributing
 Feature and pull requests are welcome.
 
