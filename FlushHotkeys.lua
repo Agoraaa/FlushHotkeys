@@ -23,14 +23,10 @@ function Controller.key_press_update(self, key, dt)
       select_with_property(get_visible_rank)
     end
     if key == invert_selection_hotkey then
-      select_hand( -- this really shouldnt be a one-liner
-        take(
-          filter(G.hand.cards,
-            function(x)
-              return -1 == indexOf(G.hand.highlighted,
-                function(y) return y == x end)
-            end)
-          , 5))
+      local unselected = filter(G.hand.cards, function(x) return -1 == indexOf(G.hand.highlighted,
+                                                                              function(y) return y == x end) end)
+      table.sort(unselected, function(x,y) return calculate_importance(x) < calculate_importance(y) end)
+      select_hand(take(unselected, 5))
     end
     if key == "g" then
       first, second = G.hand.highlighted[1], G.hand.highlighted[2]
