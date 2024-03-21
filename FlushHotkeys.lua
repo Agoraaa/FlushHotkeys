@@ -25,18 +25,11 @@ function Controller.key_press_update(self, key, dt)
       select_with_property(get_visible_suit)
     end
     if key == pair_hotkey then
-      select_with_property(get_visible_rank)
+      local best_hands = best_ofakinds(G.hand.cards)
+      select_hand(next_best_oak(best_hands, G.hand.highlighted))
     end
     if key == invert_selection_hotkey then
       invert_selection()
-    end
-    if key == "g" then
-      first, second = G.hand.highlighted[1], G.hand.highlighted[2]
-      if calculate_importance(first) > calculate_importance(second) then
-        select_hand({ second })
-      else
-        select_hand({ first })
-      end
     end
   end
 end
@@ -48,11 +41,90 @@ function love.mousepressed(x, y, button, istouch, presses)
     if button == mouse_flush_hotkey then
       select_with_property(get_visible_suit)
     elseif button == mouse_pair_hotkey then
-      select_with_property(get_visible_rank)
+      local best_hands = best_ofakinds(G.hand.cards)
+      select_hand(next_best_oak(best_hands, G.hand.highlighted))
+      
     elseif button == mouse_invert_hotkey then
       invert_selection()
     end
   end
+end
+
+--[[local wheelmovedref = love.wheelmoved
+function love.wheelmoved(x, y)
+  wheelmovedref(x,y)
+  if G.STATE == G.STATES.SELECTING_HAND then
+    if y > 0 then
+      local best_hands = best_ofakinds(G.hand.cards)
+      select_hand(next_best_oak(best_hands, G.hand.highlighted))
+    elseif y < 0 then
+      select_with_property(get_visible_suit)
+    end
+  end
+end
+]]
+
+function next_best_oak(possible_hands, curr_hand)
+  if #possible_hands == 1 then
+    return possible_hands[1]
+  end
+  if #possible_hands == 0 then
+    return {}
+  end
+  for i = 1, (#possible_hands - 1) do
+    if are_ranks_same(possible_hands[i], curr_hand) then
+      return possible_hands[i + 1]
+    end
+  end
+  return possible_hands[1]
+end
+
+function best_ofakinds(cards)
+  local fives, fours, trips, twos = {}, {}, {}, {}
+  local rank_counts = {}
+  for i, card in pairs(cards) do
+    local rank = get_visible_rank(card)
+    if not (rank == "stone") then
+      if not rank_counts[rank] then
+        rank_counts[rank] = {}
+      end
+      table.insert(rank_counts[rank], card)
+    end
+  end
+  for k, v in pairs(rank_counts) do
+    if #v >= 5 then
+      table.insert(fives, take(v, 5))
+    elseif #v == 4 then
+      table.insert(fours, v)
+    elseif #v == 3 then
+      table.insert(trips, v)
+    elseif #v == 2 then
+      table.insert(twos, v)
+    end
+  end
+  local res = {}
+  for i, v in pairs(fives) do
+    table.insert(res, v)
+  end
+  for i, v in pairs(fours) do
+    table.insert(res, v)
+  end
+  for i, v in pairs(trips) do
+    for i2, v2 in pairs(twos) do
+      table.insert(res, merge(v, v2))
+    end
+    table.insert(res, v)
+  end
+
+  for i = 1, (#twos-1) do
+    for j = i+1, #twos do
+      table.insert(res, merge(twos[i], twos[j]))
+    end
+  end
+  for i, v in pairs(twos) do
+    table.insert(res, v)
+  end
+  return res
 end
 
 function invert_selection()
@@ -86,6 +158,17 @@ function select_with_property(property_func)
   end
 end
 
+function merge(arr1, arr2)
+  local res = {}
+  for k, v in pairs(arr1) do
+    table.insert(res, v)
+  end
+  for k, v in pairs(arr2) do
+    table.insert(res, v)
+  end
+  return res
+end
+
 function filter(arr, f)
   local res = {}
   for i, v in pairs(arr) do
@@ -112,6 +195,43 @@ function take(arr, n)
   return res
 end
 
+function are_ranks_same(hand1, hand2)
+  local h1_ranks = map_f(hand1, get_visible_rank)
+  local h2_ranks = map_f(hand2, get_visible_rank)
+  local h1_rank_counts = {}
+  for i, v in ipairs(h1_ranks) do
+    if not h1_rank_counts[v] then
+      h1_rank_counts[v] = 0
+    end
+    h1_rank_counts[v] = h1_rank_counts[v] + 1
+  end
+  local h2_rank_counts = {}
+  for i, v in ipairs(h2_ranks) do
+    if not h2_rank_counts[v] then
+      h2_rank_counts[v] = 0
+    end
+    h2_rank_counts[v] = h2_rank_counts[v] + 1
+  end
+  for k, v in pairs(h1_rank_counts) do
+    if not h2_rank_counts[k] then return false end
+    if not (h2_rank_counts[k] == v) then return false end
+  end
+  -- this is a bad solution but this part is not computation intensive anyways
+  for k, v in pairs(h2_rank_counts) do
+    if not h1_rank_counts[k] then return false end
+    if not (h1_rank_counts[k] == v) then return false end
+  end
+  return true
+end
+
+function map_f(arr, f)
+  local res = {}
+  for k, v in pairs(arr) do
+    table.insert(res, f(v))
+  end
+  return res
+end
+
 function possible_hands(cards, prop_selector)
   local dictionary = {}
   for i, v in pairs(cards) do
@@ -124,7 +244,7 @@ function possible_hands(cards, prop_selector)
       table.insert(dictionary[prop_selector(v)], v)
     end
   end
-  res = {}
+  local res = {}
   for k, v in pairs(dictionary) do
     table.insert(res, v)
   end
@@ -151,7 +271,7 @@ end
 function get_visible_rank(card)
   if card.ability.effect == 'Stone Card' then return 'stone' end
   if card.facing == 'back' then return 'stone' end
-  return card.base.value -- return card.base.id seems better
+  return card.base.id -- return card.base.id seems better
 end
 
 function calculate_importance(card)
