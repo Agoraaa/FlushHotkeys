@@ -10,7 +10,7 @@ Some useful hotkeys for [Balatro](https://store.steampowered.com/app/2379780/Bal
 
 Pressing the hotkeys multiple times cycles through the options.
 ## Installation
-Follow instructions from [here](https://github.com/Steamopollys/Steamodded?tab=readme-ov-file#how-to-install-a-mod).
+Download the `FlushHotkeys.lua` file and then follow instructions from [here](https://github.com/Steamopollys/Steamodded?tab=readme-ov-file#how-to-install-a-mod).
 
 ## Configuration
 If you want to, for example change flush hotkey to `Q`, open the `FlushHotkeys.lua` file with notepad and change the
