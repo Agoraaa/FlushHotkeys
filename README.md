@@ -6,7 +6,7 @@ Some useful hotkeys for [Balatro](https://store.steampowered.com/app/2379780/Bal
 | :-: | -------------------------------- |
 | `F` | Select cards with the same suit. |
 | `D` | Select full houses, four of a kinds etc. |
-| `S` | Invert selected cards.           |
+| `S` | Invert selected cards. Tries to select "most discardable" cards. |
 
 Pressing the hotkeys multiple times cycles through the options.
 ## Installation
@@ -19,7 +19,7 @@ Use the `FlushHotkeys-scrollwheel.lua` file to enable using scroll wheel. This w
 | :-: | -------------------------------- |
 | `Wheel Down` | Select cards with the same suit. |
 | `Wheel Up` | Select full houses, four of a kinds etc. |
-| `Middle Mouse Button` | Invert selected cards.           |
+| `Middle Mouse Button` | Invert selected cards. Tries to select "most discardable" cards.|
 
 ## Configuration
 If you want to, for example change flush hotkey to `Q`, open the `FlushHotkeys.lua` file with notepad and change the

@@ -43,7 +43,6 @@ function love.mousepressed(x, y, button, istouch, presses)
     elseif button == mouse_pair_hotkey then
       local best_hands = best_ofakinds(G.hand.cards)
       select_hand(next_best_oak(best_hands, G.hand.highlighted))
-      
     elseif button == mouse_invert_hotkey then
       invert_selection()
     end
@@ -78,6 +77,7 @@ function best_ofakinds(cards)
     end
   end
   for k, v in pairs(rank_counts) do
+    table.sort(v, function(x, y) return calculate_importance(x, true) > calculate_importance(y, true) end)
     if #v >= 5 then
       table.insert(fives, take(v, 5))
     elseif #v == 4 then
@@ -88,28 +88,48 @@ function best_ofakinds(cards)
       table.insert(twos, v)
     end
   end
-  local res = {}
-  for i, v in pairs(fives) do
-    table.insert(res, v)
-  end
-  for i, v in pairs(fours) do
-    table.insert(res, v)
-  end
-  for i, v in pairs(trips) do
-    for i2, v2 in pairs(twos) do
-      table.insert(res, merge(v, v2))
-    end
-    table.insert(res, v)
-  end
+  local union = {}
+  local full_houses = {}
+  local two_pairs = {}
+  union = merge(union, fives)
+  union = merge(union, fours)
+  union = merge(union, trips)
 
-  for i = 1, (#twos-1) do
-    for j = i+1, #twos do
-      table.insert(res, merge(twos[i], twos[j]))
+  for i = 1, (#union - 1) do
+    for j = i + 1, #union do
+      table.insert(full_houses, merge(
+        take(union[i], 3),
+        take(union[j], 2)
+      ))
+      table.insert(full_houses, merge(
+        take(union[i], 2),
+        take(union[j], 3)
+      ))
     end
   end
-  for i, v in pairs(twos) do
-    table.insert(res, v)
+  for i = 1, #union do
+    for k, v in pairs(twos) do
+      table.insert(full_houses, merge(v, take(union[i], 3)))
+    end
   end
+  for i = 1, (#twos - 1) do
+    for j = i + 1, #twos do
+      table.insert(two_pairs, merge(twos[i], twos[j]))
+    end
+  end
+  table.sort(fives, function(x, y) return hand_importance(x) > hand_importance(y) end)
+  table.sort(fours, function(x, y) return hand_importance(x) > hand_importance(y) end)
+  table.sort(trips, function(x, y) return hand_importance(x) > hand_importance(y) end)
+  table.sort(full_houses, function(x, y) return hand_importance(x) > hand_importance(y) end)
+  table.sort(two_pairs, function(x, y) return hand_importance(x) > hand_importance(y) end)
+  table.sort(twos, function(x, y) return hand_importance(x) > hand_importance(y) end)
+  local res = {}
+  res = merge(res, fives)
+  res = merge(res, fours)
+  res = merge(res, full_houses)
+  res = merge(res, trips)
+  res = merge(res, two_pairs)
+  res = merge(res, twos)
   return res
 end
 
@@ -118,7 +138,7 @@ function invert_selection()
     return -1 == indexOf(G.hand.highlighted,
       function(y) return y == x end)
   end)
-  table.sort(unselected, function(x, y) return calculate_importance(x) < calculate_importance(y) end)
+  table.sort(unselected, function(x, y) return calculate_importance(x, false) < calculate_importance(y, false) end)
   select_hand(take(unselected, 5))
 end
 
@@ -142,43 +162,6 @@ function select_with_property(property_func)
   else
     select_hand(possible_hands[1])
   end
-end
-
-function merge(arr1, arr2)
-  local res = {}
-  for k, v in pairs(arr1) do
-    table.insert(res, v)
-  end
-  for k, v in pairs(arr2) do
-    table.insert(res, v)
-  end
-  return res
-end
-
-function filter(arr, f)
-  local res = {}
-  for i, v in pairs(arr) do
-    if (f(v)) then
-      table.insert(res, v)
-    end
-  end
-  return res
-end
-
-function indexOf(arr, f)
-  for key, value in ipairs(arr) do
-    if f(value) then return key end
-  end
-  return -1
-end
-
-function take(arr, n)
-  local res = {}
-  for i = 1, n, 1 do
-    if not arr[i] then return res end
-    table.insert(res, arr[i])
-  end
-  return res
 end
 
 function are_ranks_same(hand1, hand2)
@@ -208,14 +191,6 @@ function are_ranks_same(hand1, hand2)
     if not (h1_rank_counts[k] == v) then return false end
   end
   return true
-end
-
-function map_f(arr, f)
-  local res = {}
-  for k, v in pairs(arr) do
-    table.insert(res, f(v))
-  end
-  return res
 end
 
 function possible_hands(cards, prop_selector)
@@ -264,44 +239,151 @@ function get_visible_rank(card)
   return card.base.id -- return card.base.id seems better
 end
 
-function calculate_importance(card)
+function calculate_importance(card, is_for_play)
+  -- im putting this table for fine tuning. change the numbers if you want
+  local importances = {
+    play = {
+      seal = {
+        Gold = 50,
+        Blue = -10,
+        Red = 50,
+        Purple = -10
+      },
+      edition = {
+        holo = 70,
+        foil = 60,
+        polychrome = 75
+      },
+      ability = {
+        Steel = -20,
+        Glass = 25,
+        Wild = 15,
+        Bonus = 25,
+        Mult = 25,
+        Stone = 15,
+        Lucky = 25
+      }
+    },
+    discard = {
+      seal = {
+        Gold = 50,
+        Blue = -10,
+        Red = 50,
+        Purple = -50
+      },
+      edition = {
+        holo = 70,
+        foil = 60,
+        polychrome = 75
+      },
+      ability = {
+        Steel = 30,
+        Glass = 25,
+        Wild = 15,
+        Bonus = 25,
+        Mult = 25,
+        Stone = 15,
+        Lucky = 25
+      }
+    }
+  }
+  -- we can maybe implement the joker interactions
   local res = 0
   if card.flipped then return -20 end
-  if card.seal and not card.debuff then
-    if card.seal == "Gold" then
-      res = res + 50
-    elseif card.seal == "Blue" then
-      res = res + 10 -- we hate blue amirite
-    elseif card.seal == "Red" then
-      res = res + 50
-    elseif card.seal == "Purple" then
-      res = res - 50
+  if card.debuff then return -5 end
+  if is_for_play then
+    if card.seal then
+      res = res + (importances.play.seal[card.seal] or 0)
     end
-  end
-
-  if card.edition and not card.debuff then
-    res = res + (card.edition.holo and 70 or 0) + (card.edition.foil and 60 or 0) +
-        (card.edition.polychrome and 75 or 0)
-    -- "Gold Card", "Glass Card", "Wild Card", "Bonus", "Mult", "Steel Card", "Stone Card", "Lucky Card"
-  end
-  if card.ability and not card.debuff then
-    if card.ability.name == "Steel Card" then
-      res = res + 20
-    elseif card.ability.name == "Glass Card" then
-      res = res + 20
-    elseif card.ability.name == "Wild Card" then
-      res = res + 15
-    elseif card.ability.name == "Bonus" then
-      res = res + 20
-    elseif card.ability.name == "Mult" then
-      res = res + 20
-    elseif card.ability.name == "Stone Card" then
-      res = res + 20
-    elseif card.ability.name == "Lucky Card" then
-      res = res + 20
+    if card.edition then
+      if card.edition.holo then
+        res = res + importances.play.edition.holo
+      elseif card.edition.foil then
+        res = res + importances.play.edition.foil
+      elseif card.edition.polychrome then
+        res = res + importances.play.edition.polychrome
+      else
+        res = res + 50
+      end
+    end
+    if card.ability then
+      local effect = string.gsub(card.ability.name, " Card", "")
+      res = res + (importances.play.ability[effect] or 40)
+    end
+  else
+    if card.seal then
+      res = res + (importances.discard.seal[card.seal] or 0)
+    end
+    if card.edition then
+      if card.edition.holo then
+        res = res + importances.discard.edition.holo
+      elseif card.edition.foil then
+        res = res + importances.discard.edition.foil
+      elseif card.edition.polychrome then
+        res = res + importances.discard.edition.polychrome
+      else
+        res = res + 50
+      end
+    end
+    if card.ability then
+      local effect = string.gsub(card.ability.name, " Card", "")
+      res = res + (importances.discard.ability[effect] or 40)
     end
   end
   res = res + card.base.id
+  return res
+end
+
+function hand_importance(hand)
+  res = 0
+  for k, v in pairs(hand) do
+    res = res + calculate_importance(v, true)
+  end
+  return res
+end
+
+function merge(arr1, arr2)
+  local res = {}
+  for k, v in pairs(arr1) do
+    table.insert(res, v)
+  end
+  for k, v in pairs(arr2) do
+    table.insert(res, v)
+  end
+  return res
+end
+
+function filter(arr, f)
+  local res = {}
+  for i, v in pairs(arr) do
+    if (f(v)) then
+      table.insert(res, v)
+    end
+  end
+  return res
+end
+
+function indexOf(arr, f)
+  for key, value in ipairs(arr) do
+    if f(value) then return key end
+  end
+  return -1
+end
+
+function take(arr, n)
+  local res = {}
+  for i = 1, n, 1 do
+    if not arr[i] then return res end
+    table.insert(res, arr[i])
+  end
+  return res
+end
+
+function map_f(arr, f)
+  local res = {}
+  for k, v in pairs(arr) do
+    table.insert(res, f(v))
+  end
   return res
 end
 
