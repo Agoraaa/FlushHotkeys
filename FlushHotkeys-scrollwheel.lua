@@ -298,7 +298,7 @@ function calculate_importance(card, is_for_play)
         Mult = 25,
         Stone = 15,
         Lucky = 25,
-        Gold = -5
+        Gold = 15
       }
     }
   }
