@@ -274,7 +274,8 @@ function calculate_importance(card, is_for_play)
         Bonus = 25,
         Mult = 25,
         Stone = 15,
-        Lucky = 25
+        Lucky = 25,
+        Gold = -10
       }
     },
     discard = {
@@ -296,7 +297,8 @@ function calculate_importance(card, is_for_play)
         Bonus = 25,
         Mult = 25,
         Stone = 15,
-        Lucky = 25
+        Lucky = 25,
+        Gold = -5
       }
     }
   }
@@ -316,12 +318,12 @@ function calculate_importance(card, is_for_play)
       elseif card.edition.polychrome then
         res = res + importances.play.edition.polychrome
       else
-        res = res + 50
+        res = res + 0
       end
     end
     if card.ability then
       local effect = string.gsub(card.ability.name, " Card", "")
-      res = res + (importances.play.ability[effect] or 40)
+      res = res + (importances.play.ability[effect] or 0)
     end
   else
     if card.seal then
@@ -335,12 +337,12 @@ function calculate_importance(card, is_for_play)
       elseif card.edition.polychrome then
         res = res + importances.discard.edition.polychrome
       else
-        res = res + 50
+        res = res + 0
       end
     end
     if card.ability then
       local effect = string.gsub(card.ability.name, " Card", "")
-      res = res + (importances.discard.ability[effect] or 40)
+      res = res + (importances.discard.ability[effect] or 0)
     end
   end
   res = res + card.base.id
