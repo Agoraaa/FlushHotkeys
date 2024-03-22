@@ -243,20 +243,24 @@ function select_hand(cards)
   for k, v in pairs(cards) do
     G.hand:add_to_highlighted(v, true)
   end
-  play_sound('cardSlide1')
+  if next(cards) then
+    play_sound("cardSlide1")
+  else
+    play_sound("cancel")
+  end
 end
 
 function get_visible_suit(card)
-  if card.ability.effect == 'Stone Card' then return 'stone' end
+  if card.ability.effect == "Stone Card" then return "stone" end
   -- applying wild cards to every flush needs hardcoding so im skipping it
-  if card.ability.name == "Wild Card" and not card.debuff then return 'stone' end
-  if card.facing == 'back' then return 'stone' end
+  if card.ability.name == "Wild Card" and not card.debuff then return "stone" end
+  if card.facing == "back" then return "stone" end
   return card.base.suit
 end
 
 function get_visible_rank(card)
-  if card.ability.effect == 'Stone Card' then return 'stone' end
-  if card.facing == 'back' then return 'stone' end
+  if card.ability.effect == "Stone Card" then return "stone" end
+  if card.facing == 'back' then return "stone" end
   return card.base.id -- return card.base.id seems better
 end
 
