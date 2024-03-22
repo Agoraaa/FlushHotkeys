@@ -214,13 +214,12 @@ function possible_hands(cards, prop_selector)
     end
   end
   for k, v in pairs(cards) do
-    if #dictionary[prop_selector(v)] < 5 then
-      table.insert(dictionary[prop_selector(v)], v)
-    end
+    table.insert(dictionary[prop_selector(v)], v)
   end
   local res = {}
   for k, v in pairs(dictionary) do
-    table.insert(res, v)
+    table.sort(v, function(x, y) return calculate_importance(x, true) > calculate_importance(y, true) end)
+    table.insert(res, take(v, 5))
   end
   table.sort(res, function(x, y) return #x > #y end)
   return res
