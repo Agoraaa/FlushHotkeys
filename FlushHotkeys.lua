@@ -208,8 +208,8 @@ function possible_hands(cards, prop_selector)
     table.sort(v, function(x, y) return calculate_importance(x, true) > calculate_importance(y, true) end)
     table.insert(res, take(v, 5))
   end
-  table.sort(res, function(x, y) return #x > #y end)
-  return res
+  table.sort(res, function(x, y) return ((#x == #y) and (hand_importance(x) > hand_importance(y)))
+    or #x > #y end)  return res
 end
 
 function select_hand(cards)
