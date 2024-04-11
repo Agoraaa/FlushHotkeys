@@ -229,7 +229,9 @@ end
 function select_hand(cards)
   G.hand:unhighlight_all()
   for k, v in pairs(cards) do
-    G.hand:add_to_highlighted(v, true)
+    if indexOf(G.hand.highlighted, function (x) return x == v end) == -1 then
+      G.hand:add_to_highlighted(v, true)
+    end
   end
   if next(cards) then
     play_sound("cardSlide1")
