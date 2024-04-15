@@ -9,6 +9,7 @@
 local flush_hotkey = "f"
 local pair_hotkey = "d"
 local invert_selection_hotkey = "s"
+local unhighlight_hotkey = "q"
 
 -- 1, 2, 3 are LMB, RMB, and middle mouse button respectively. If you have additional mouse buttons try setting
 -- the number to 4, 5...
@@ -30,6 +31,9 @@ function Controller.key_press_update(self, key, dt)
     end
     if key == invert_selection_hotkey then
       invert_selection()
+    end
+    if key == unhighlight_hotkey then
+      G.hand:unhighlight_all()
     end
   end
 end
