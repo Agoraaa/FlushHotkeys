@@ -6,45 +6,49 @@
 
 ----------------------------------------------
 ------------MOD CODE -------------------------
-local flush_hotkey = "f"
-local pair_hotkey = "d"
-local invert_selection_hotkey = "s"
-
--- 1, 2, 3 are LMB, RMB, and middle mouse button respectively. If you have additional mouse buttons try setting
--- the number to 4, 5...
-local mouse_flush_hotkey = 400
-local mouse_pair_hotkey = 400
-local mouse_invert_hotkey = 400
+local flush_hotkeys = { "f", "none" }
+local pair_hotkeys = { "d", "none" }
+local invert_selection_hotkeys = { "s", "none" }
+local play_hand_hotkeys = { "none", "none" }
+local discard_hand_hotkeys = { "none", "none" }
 
 local keyupdate_ref = Controller.key_press_update
 function Controller.key_press_update(self, key, dt)
   keyupdate_ref(self, key, dt)
-
-  if G.STATE == G.STATES.SELECTING_HAND then
-    if key == flush_hotkey then
-      select_with_property(get_visible_suit)
-    end
-    if key == pair_hotkey then
-      local best_hands = best_ofakinds(G.hand.cards)
-      select_hand(next_best_oak(best_hands, G.hand.highlighted))
-    end
-    if key == invert_selection_hotkey then
-      invert_selection()
-    end
-  end
+  handle_hotkeys(key)
 end
 
 local mouseref = love.mousepressed
 function love.mousepressed(x, y, button, istouch, presses)
   mouseref(x, y, button, istouch, presses)
+  pressed_button = string.format("mouse%i", button)
+  if pressed_button == "mouse1" or pressed_button == "mouse2" then
+    return
+  end
+  handle_hotkeys(pressed_button)
+end
+
+function handle_hotkeys(key)
   if G.STATE == G.STATES.SELECTING_HAND then
-    if button == mouse_flush_hotkey then
+    if not (indexOf(flush_hotkeys, function(x) return x == key end) == -1) then
       select_with_property(get_visible_suit)
-    elseif button == mouse_pair_hotkey then
+    elseif not (indexOf(pair_hotkeys, function(x) return x == key end) == -1) then
       local best_hands = best_ofakinds(G.hand.cards)
       select_hand(next_best_oak(best_hands, G.hand.highlighted))
-    elseif button == mouse_invert_hotkey then
+    elseif not (indexOf(invert_selection_hotkeys, function(x) return x == key end) == -1) then
       invert_selection()
+    elseif not (indexOf(play_hand_hotkeys, function(x) return x == key end) == -1) then
+      if #G.hand.highlighted > 0 and (not G.GAME.blind.block_play) and #G.hand.highlighted <= 5 then
+        G.FUNCS.play_cards_from_highlighted()
+      else
+        play_sound("cancel")
+      end
+    elseif not (indexOf(discard_hand_hotkeys, function(x) return x == key end) == -1) then
+      if (G.GAME.current_round.discards_left > 0) and (#G.hand.highlighted > 0) then
+        G.FUNCS.discard_cards_from_highlighted()
+      else
+        play_sound("cancel")
+      end
     end
   end
 end
@@ -208,14 +212,17 @@ function possible_hands(cards, prop_selector)
     table.sort(v, function(x, y) return calculate_importance(x, true) > calculate_importance(y, true) end)
     table.insert(res, take(v, 5))
   end
-  table.sort(res, function(x, y) return ((#x == #y) and (hand_importance(x) > hand_importance(y)))
-    or #x > #y end)  return res
+  table.sort(res, function(x, y)
+    return ((#x == #y) and (hand_importance(x) > hand_importance(y)))
+        or #x > #y
+  end)
+  return res
 end
 
 function select_hand(cards)
   G.hand:unhighlight_all()
   for k, v in pairs(cards) do
-    if indexOf(G.hand.highlighted, function (x) return x == v end) == -1 then
+    if indexOf(G.hand.highlighted, function(x) return x == v end) == -1 then
       G.hand:add_to_highlighted(v, true)
     end
   end
