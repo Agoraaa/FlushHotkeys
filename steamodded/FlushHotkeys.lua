@@ -6,9 +6,9 @@
 
 ----------------------------------------------
 ------------MOD CODE -------------------------
-local flush_hotkeys = { "f", "none" }
-local pair_hotkeys = { "d", "none" }
-local invert_selection_hotkeys = { "s", "none" }
+local flush_hotkeys = { "f", "scrolldown" }
+local pair_hotkeys = { "d", "scrollup" }
+local invert_selection_hotkeys = { "s", "mouse3" }
 local play_hand_hotkeys = { "none", "none" }
 local discard_hand_hotkeys = { "none", "none" }
 
@@ -50,6 +50,16 @@ function handle_hotkeys(key)
         play_sound("cancel")
       end
     end
+  end
+end
+
+--local wheelmovedref = love.wheelmoved
+function love.wheelmoved(x, y)
+  --wheelmovedref(x,y)
+  if y > 0 then
+    handle_hotkeys("scrollup")
+  else
+    handle_hotkeys("scrolldown")
   end
 end
 

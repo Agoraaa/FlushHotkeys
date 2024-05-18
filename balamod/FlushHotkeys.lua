@@ -1,6 +1,6 @@
-local flush_hotkeys = { "f", "none" }
-local pair_hotkeys = { "d", "none" }
-local invert_selection_hotkeys = { "s", "none" }
+local flush_hotkeys = { "f", "scrolldown" }
+local pair_hotkeys = { "d", "scrollup" }
+local invert_selection_hotkeys = { "s", "mouse3" }
 local play_hand_hotkeys = { "none", "none" }
 local discard_hand_hotkeys = { "none", "none" }
 
@@ -392,6 +392,13 @@ table.insert(mods,
                 handle_hotkeys(string.format("mouse%i", mbutton)
             )
             end
+        end,
+        on_mousewheel = function(x, y)
+          if y > 0 then
+            handle_hotkeys("scrollup")
+          else
+            handle_hotkeys("scrolldown")
+          end
         end
     }
 )
