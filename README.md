@@ -1,5 +1,5 @@
 # FlushHotkeys
-Some useful hotkeys for [Balatro](https://store.steampowered.com/app/2379780/Balatro). Requires [Steamodded](https://github.com/Steamopollys/Steamodded).
+Some useful hotkeys for [Balatro](https://store.steampowered.com/app/2379780/Balatro). Requires [Balamod](https://github.com/balamod/balamod) or [Steamodded](https://github.com/Steamopollys/Steamodded).
 
 ## Hotkeys
 | Key | Use                              |
@@ -10,10 +10,10 @@ Some useful hotkeys for [Balatro](https://store.steampowered.com/app/2379780/Bal
 
 Pressing the hotkeys multiple times cycles through the options. There are also `Play Hand` and `Discard Hand` hotkeys which are unbound. Follow [configuration](#configuration) to set them.
 ## Installation
-Download the `FlushHotkeys.lua` file and then follow instructions from [here](https://github.com/Steamopollys/Steamodded?tab=readme-ov-file#how-to-install-a-mod).
+Download the `FlushHotkeys.lua` file and then follow [balamod](https://github.com/balamod/balamod?tab=readme-ov-file#how-to-install-mods) or [steamodloader](https://github.com/Steamopollys/Steamodded?tab=readme-ov-file#how-to-install-a-mod) instructions.
 
 ## Scroll Wheel Mode
-Use the `FlushHotkeys-scrollwheel.lua` file to enable using scroll wheel. This will **disable all other functionality** for the scroll wheel. It's fine for the base game but it will override any other scroll wheel feature added by other mods. 
+Use the `FlushHotkeys-scrollwheel.lua` file to enable using scroll wheel. This will **disable all other functionality** for the scroll wheel and isn't supported on balamod. It's fine for the base game but it will override any other scroll wheel feature added by other mods. 
 
 | Key | Use                              |
 | :-: | -------------------------------- |
