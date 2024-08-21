@@ -1,0 +1,11 @@
+{
+    "id": "flushhotkeys",
+    "name": "Flush Hotkeys",
+    "version": "1.0.0",
+    "description": [
+        "This is an example mod."
+    ],
+    "author": "Agoraaa",
+    "load_before": [],
+    "load_after": []
+}

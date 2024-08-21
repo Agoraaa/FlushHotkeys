@@ -1,13 +1,10 @@
+local mod_id = "flushhotkeys"
+
 local flush_hotkeys = { "f", "scrolldown" }
 local pair_hotkeys = { "d", "scrollup" }
 local invert_selection_hotkeys = { "s", "mouse3" }
 local play_hand_hotkeys = { "none", "none" }
 local discard_hand_hotkeys = { "none", "none" }
-
-local mod_id = "FlushHotkeys"
-local mod_name = "Flush Hotkeys"
-local mod_version = "1.0"
-local mod_author = "Agora"
 
 function handle_hotkeys(key)
     if G.STATE == G.STATES.SELECTING_HAND then
@@ -225,7 +222,7 @@ function handle_hotkeys(key)
   function get_visible_rank(card)
     if card.ability.effect == "Stone Card" then return "stone" end
     if card.facing == 'back' then return "stone" end
-    return card.base.id -- return card.base.id seems better
+    return card.base.id   -- return card.base.id seems better
   end
   
   function calculate_importance(card, is_for_play)
@@ -378,27 +375,29 @@ function handle_hotkeys(key)
     return res
   end
   
-table.insert(mods,
-    {
-        mod_id = mod_id,
-        name = mod_name,
-        version = mod_version,
-        author = mod_author,
-        on_key_pressed = function(key_name)
-            handle_hotkeys(key_name)
-        end,
-        on_mouse_pressed = function(x, y, mbutton)
-            if mbutton > 2 then
-                handle_hotkeys(string.format("mouse%i", mbutton)
-            )
-            end
-        end,
-        on_mousewheel = function(x, y)
-          if y > 0 then
-            handle_hotkeys("scrollup")
-          else
-            handle_hotkeys("scrolldown")
-          end
-        end
-    }
-)
+  local function on_key_pressed(key) -- you can return true to prevent the game from handling the event
+    handle_hotkeys(key)
+  end
+  
+  local function on_mouse_pressed(button, x, y, touch) -- you can return true to prevent the game from handling the event
+    if button > 2 then
+      handle_hotkeys(string.format("mouse%i", button)
+      )
+    end
+  end
+  
+  local function on_mousewheel(x, y)
+    if y > 0 then
+      handle_hotkeys("scrollup")
+    else
+      handle_hotkeys("scrolldown")
+    end
+  end
+  
+  
+  return {
+    on_key_pressed = on_key_pressed,
+    on_mouse_pressed = on_mouse_pressed,
+    on_mousewheel = on_mousewheel
+  }
+  
