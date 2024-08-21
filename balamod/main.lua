@@ -1,4 +1,4 @@
-local mod_id = "flushhotkeys"
+local mod_id = "flush_hotkeys"
 
 local flush_hotkeys = { "f", "scrolldown" }
 local pair_hotkeys = { "d", "scrollup" }

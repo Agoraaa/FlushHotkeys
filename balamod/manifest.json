@@ -1,9 +1,9 @@
 {
-    "id": "flushhotkeys",
+    "id": "flush_hotkeys",
     "name": "Flush Hotkeys",
     "version": "1.0.0",
     "description": [
-        "This is an example mod."
+        "Hotkeys for flushes, full houses and more.", "Try pressing S, D, F and mouse buttons!"
     ],
     "author": "Agoraaa",
     "load_before": [],
