@@ -374,9 +374,9 @@ local function handle_hotkeys(key)
     end
   end
 
---local wheelmovedref = love.wheelmoved
+local wheelmovedref = love.wheelmoved or function() end
 function love.wheelmoved(x, y)
-    --wheelmovedref(x,y)
+    wheelmovedref(x,y)
     if y > 0 then
       handle_hotkeys("scrollup")
     else
