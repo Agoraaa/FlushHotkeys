@@ -10,7 +10,11 @@ Some useful hotkeys for [Balatro](https://store.steampowered.com/app/2379780/Bal
 
 Pressing the hotkeys multiple times cycles through the options. There are also `Play Hand` and `Discard Hand` hotkeys which are unbound. Follow [configuration](#configuration) to set them.
 ## Installation
-Follow either [balamod](https://github.com/balamod/balamod?tab=readme-ov-file#how-to-install-mods) or [steamodloader](https://github.com/Steamopollys/Steamodded?tab=readme-ov-file#how-to-install-a-mod) instructions.
+1. Download [this zip file.](https://github.com/Agoraaa/FlushHotkeys/archive/refs/heads/main.zip)
+2. Drag the folder in the zip file to your mods folder.
+3. Enjoy!
+
+If you are using balamod, use the `balamod` folder instead.
 
 ## Configuration
 If you want to, for example add additional hotkey `Q` for the flushes, open the `FlushHotkeys.lua` file with notepad and change the
