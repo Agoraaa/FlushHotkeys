@@ -1,1 +1,0 @@
-local flushhotkeys = require "flushhotkeys"
