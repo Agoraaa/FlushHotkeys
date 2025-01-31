@@ -1,0 +1,12 @@
+{
+	"id": "FlushHotkeys",
+	"name": "Flush Hotkeys",
+	"display_name": "Flush Hotkeys",
+    "main_file": "FlushHotkeys.lua",
+	"author": ["Agoraaa"],
+    "prefix": "fhotk",
+	"description": "Hotkeys for selecting flushes, of a kinds, and inverting selection.",
+	"priority": 0,
+    "version": "1.0.1",
+	"dependencies": []
+}
