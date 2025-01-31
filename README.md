@@ -4,11 +4,14 @@ Some useful hotkeys for [Balatro](https://store.steampowered.com/app/2379780/Bal
 ## Hotkeys
 | Key | Use                              |
 | :-: | -------------------------------- |
-| `F`, `Scroll Down` | Select cards with the same suit. |
-| `D`, `Scroll Up` | Select full houses, four of a kinds etc. |
-| `S`, `Middle Mouse Button` | Invert selected cards. Tries to select "most discardable" cards. |
+| `F` | Select cards with the same suit. |
+| `D` | Select full houses, four of a kinds etc. |
+| `S` | Invert selected cards. Tries to select "most discardable" cards. |
+| `-`| Play hand.|
+| `-`| Discard hand.|
 
-Pressing the hotkeys multiple times cycles through the options.
+Pressing the hotkeys multiple times cycles through the options. Hotkeys can be rebound in the mod's config section in the game.
+
 ## Installation
 0. Make sure [Steamodded](https://github.com/Steamodded/smods) is installed. 
 1. Download [this zip file.](https://github.com/Agoraaa/FlushHotkeys/archive/refs/heads/main.zip)
