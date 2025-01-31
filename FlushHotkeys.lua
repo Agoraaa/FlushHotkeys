@@ -89,8 +89,7 @@ end
 
 local function get_visible_suit(card)
   if card.ability.effect == "Stone Card" then return "stone" end
-  -- applying wild cards to every flush needs hardcoding so im skipping it
-  if card.ability.name == "Wild Card" and not card.debuff then return "stone" end
+  if card.ability.name == "Wild Card" and not card.debuff then return "wild" end
   if card.facing == "back" then return "stone" end
   return card.base.suit
 end
@@ -229,6 +228,13 @@ local function take(arr, n)
   return res
 end
 
+local function first(arr)
+  for key, value in pairs(arr) do
+    return value
+  end
+  return nil
+end
+
 local function map_f(arr, f)
   local res = {}
   for k, v in pairs(arr) do
@@ -266,7 +272,6 @@ local function are_ranks_same(hand1, hand2)
     if not h2_rank_counts[k] then return false end
     if not (h2_rank_counts[k] == v) then return false end
   end
-  -- this is a bad solution but this part is not computation intensive anyways
   for k, v in pairs(h2_rank_counts) do
     if not h1_rank_counts[k] then return false end
     if not (h1_rank_counts[k] == v) then return false end
@@ -274,16 +279,22 @@ local function are_ranks_same(hand1, hand2)
   return true
 end
 
-local function possible_hands(cards, prop_selector)
+local function possible_flushes(cards)
   local dictionary = {}
+  local wilds = {}
   for i, v in pairs(cards) do
-    if not dictionary[prop_selector(v)] then
-      dictionary[prop_selector(v)] = {}
+    local suit = get_visible_suit(v)
+    if suit == "wild" then
+      table.insert(wilds, v)
+    else
+      if not dictionary[suit] then
+        dictionary[suit] = {}
+      end
+      table.insert(dictionary[suit], v)
     end
   end
-  for k, v in pairs(cards) do
-    table.insert(dictionary[prop_selector(v)], v)
-  end
+  table.sort(wilds, function(x, y) return calculate_importance(x, true) > calculate_importance(y, true) end)
+
   local res = {}
   for k, v in pairs(dictionary) do
     table.sort(v, function(x, y) return calculate_importance(x, true) > calculate_importance(y, true) end)
@@ -293,7 +304,10 @@ local function possible_hands(cards, prop_selector)
     return ((#x == #y) and (hand_importance(x) > hand_importance(y)))
         or #x > #y
   end)
-  return res
+  return {
+    wild_cards = wilds,
+    hands = res
+  }
 end
 
 local function next_best_oak(possible_hands, curr_hand)
@@ -402,25 +416,54 @@ local function invert_selection()
   select_hand(take(unselected, 5))
 end
 
-local function select_with_property(property_func)
-  local possible_hands = possible_hands(G.hand.cards, property_func)
-  if not next(possible_hands) then return end
+local function select_flush()
+  local possible_hands = possible_flushes(G.hand.cards)
+  local highlighted_wildlesses = filter(G.hand.highlighted, function(k) return get_visible_suit(k) ~= "wild" end)
+  if not next(possible_hands.hands) then
+    if next(possible_hands.wild_cards) then
+      select_hand(take(possible_hands.wild_cards, 5))
+    end
+    return
+  end
   if #G.hand.highlighted == 0 then
-    select_hand(possible_hands[1])
-  elseif #filter(G.hand.highlighted, function(s) return property_func(s) == property_func(G.hand.highlighted[1]) end) == #G.hand.highlighted then
-    local curr_ind = indexOf(possible_hands,
-      function(k) return property_func(k[1]) == property_func(G.hand.highlighted[1]) end)
-    if #G.hand.highlighted == #possible_hands[curr_ind] then
-      if curr_ind == #possible_hands then
-        select_hand(possible_hands[1])
+    local sel_hand = possible_hands.hands[1]
+    select_hand(merge(sel_hand, take(possible_hands.wild_cards, 5 - #sel_hand)))
+    return
+  else
+    if #highlighted_wildlesses == 0 then
+      -- every card in hand is wild
+      local sel_hand = possible_hands.hands[1]
+      select_hand(merge(sel_hand, take(possible_hands.wild_cards, 5 - #sel_hand)))
+      return
+    end
+    local non_wild_suit = get_visible_suit(first(highlighted_wildlesses))
+    local remaining_suits = filter(highlighted_wildlesses,
+      function(s) return get_visible_suit(s) ~= non_wild_suit end)
+    if next(remaining_suits) then
+      -- 2 different suits picked, just pick the usual
+      local sel_hand = possible_hands.hands[1]
+      select_hand(merge(sel_hand, take(possible_hands.wild_cards, 5 - #sel_hand)))
+      return
+    end
+    local curr_ind = indexOf(possible_hands.hands,
+      function(k) return get_visible_suit(k[1]) == non_wild_suit end)
+    print(non_wild_suit)
+    if #highlighted_wildlesses == #possible_hands.hands[curr_ind] then
+      if curr_ind == #possible_hands.hands then
+        local sel_hand = possible_hands.hands[1]
+        select_hand(merge(sel_hand, take(possible_hands.wild_cards, 5 - #sel_hand)))
+        return
       else
-        select_hand(possible_hands[curr_ind + 1])
+        local sel_hand = possible_hands.hands[curr_ind + 1]
+        select_hand(merge(sel_hand, take(possible_hands.wild_cards, 5 - #sel_hand)))
+        return
       end
     else
-      select_hand(possible_hands[curr_ind])
+      print("wadafak ???")
+      local sel_hand = possible_hands.hands[1]
+      select_hand(merge(sel_hand, take(possible_hands.wild_cards, 5 - #sel_hand)))
+      return
     end
-  else
-    select_hand(possible_hands[1])
   end
 end
 
@@ -433,7 +476,7 @@ local function bind_new_key(key, button)
 end
 
 local function handle_hotkeys(key, handle_ref)
-  key = key:sub(1,1):upper()..key:sub(2)
+  key = key:sub(1, 1):upper() .. key:sub(2)
   if is_catching_key then
     if key == "Mouse1" or key == "Escape" then
     else
@@ -446,7 +489,7 @@ local function handle_hotkeys(key, handle_ref)
   end
   if G.STATE == G.STATES.SELECTING_HAND then
     if not (indexOf(config.flush_keys, function(x) return x == key end) == -1) then
-      select_with_property(get_visible_suit)
+      select_flush()
     elseif not (indexOf(config.oak_keys, function(x) return x == key end) == -1) then
       local best_hands = best_ofakinds(G.hand.cards)
       select_hand(next_best_oak(best_hands, G.hand.highlighted))
