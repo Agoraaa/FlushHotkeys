@@ -2,7 +2,7 @@
 	"id": "FlushHotkeys",
 	"name": "Flush Hotkeys",
 	"display_name": "Flush Hotkeys",
-    "main_file": "FlushHotkeys.lua",
+    "main_file": "init.lua",
 	"author": ["Agoraaa"],
     "prefix": "fhotk",
 	"description": "Hotkeys for selecting flushes, of a kinds, and inverting selection.",

@@ -3,8 +3,6 @@ local pair_hotkeys = { "d", "scrollup" }
 local invert_selection_hotkeys = { "s", "mouse3" }
 local play_hand_hotkeys = { "none", "none" }
 local discard_hand_hotkeys = { "none", "none" }
-
-local core = {}
   
 local function get_visible_rank(card)
     if card.ability.effect == "Stone Card" then return "stone" end
@@ -138,14 +136,14 @@ local function filter(arr, f)
     return res
   end
   
-local  function indexOf(arr, f)
+local function indexOf(arr, f)
     for key, value in ipairs(arr) do
       if f(value) then return key end
     end
     return -1
   end
   
-local  function take(arr, n)
+local function take(arr, n)
     local res = {}
     for i = 1, n, 1 do
       if not arr[i] then return res end
@@ -154,7 +152,7 @@ local  function take(arr, n)
     return res
   end
   
-local  function map_f(arr, f)
+local function map_f(arr, f)
     local res = {}
     for k, v in pairs(arr) do
       table.insert(res, f(v))
@@ -162,7 +160,7 @@ local  function map_f(arr, f)
     return res
   end
 
-local  function hand_importance(hand)
+local function hand_importance(hand)
     res = 0
     for k, v in pairs(hand) do
       res = res + calculate_importance(v, true)
@@ -170,7 +168,7 @@ local  function hand_importance(hand)
     return res
   end
 
-local  function are_ranks_same(hand1, hand2)
+local function are_ranks_same(hand1, hand2)
     local h1_ranks = map_f(hand1, get_visible_rank)
     local h2_ranks = map_f(hand2, get_visible_rank)
     local h1_rank_counts = {}
@@ -221,7 +219,7 @@ local function possible_hands(cards, prop_selector)
     return res
 end
 
-local  function next_best_oak(possible_hands, curr_hand)
+local function next_best_oak(possible_hands, curr_hand)
     if #possible_hands == 1 then
       return possible_hands[1]
     end
@@ -236,7 +234,7 @@ local  function next_best_oak(possible_hands, curr_hand)
     return possible_hands[1]
   end
   
-local  function best_ofakinds(cards)
+local function best_ofakinds(cards)
     local fives, fours, trips, twos = {}, {}, {}, {}
     local rank_counts = {}
     for i, card in pairs(cards) do
@@ -305,7 +303,7 @@ local  function best_ofakinds(cards)
     return res
   end
 
-  local  function select_hand(cards)
+  local function select_hand(cards)
     G.hand:unhighlight_all()
     for k, v in pairs(cards) do
       if indexOf(G.hand.highlighted, function(x) return x == v end) == -1 then
@@ -326,8 +324,8 @@ local function invert_selection()
     table.sort(unselected, function(x, y) return calculate_importance(x, false) < calculate_importance(y, false) end)
     select_hand(take(unselected, 5))
   end
-  
-local  function select_with_property(property_func)
+
+local function select_with_property(property_func)
     local possible_hands = possible_hands(G.hand.cards, property_func)
     if not next(possible_hands) then return end
     if #G.hand.highlighted == 0 then
@@ -394,6 +392,8 @@ function love.mousepressed(x, y, button, istouch, presses)
   handle_hotkeys(pressed_button)
 end
 
-core.handle_hotkeys = handle_hotkeys
-
-return core
+local keyupdate_ref = Controller.key_press_update
+function Controller:key_press_update(key, dt)
+  keyupdate_ref(self, key, dt)
+  handle_hotkeys(key)
+end
