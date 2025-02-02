@@ -5,8 +5,8 @@
     "main_file": "FlushHotkeys.lua",
 	"author": ["Agoraaa"],
     "prefix": "fhotkey",
-	"description": "Hotkeys for selecting flushes, of a kinds, and inverting selection.",
+	"description": "Hotkeys for selecting most hand types. Use config to rebind them. Press the key multiple times to cycle through options.",
 	"priority": 0,
-    "version": "1.0.2",
+    "version": "1.0.3",
 	"dependencies": []
 }
