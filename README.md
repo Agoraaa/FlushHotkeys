@@ -7,6 +7,7 @@ Some useful hotkeys for [Balatro](https://store.steampowered.com/app/2379780/Bal
 | `F` | Select cards with the same suit. |
 | `D` | Select full houses, four of a kinds etc. |
 | `S` | Invert selected cards. Tries to select "most discardable" cards. |
+| `H` | Select straights. |
 | `-`| Play hand.|
 | `-`| Discard hand.|
 
