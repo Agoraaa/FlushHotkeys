@@ -281,10 +281,9 @@ local function are_ranks_same(hand1, hand2)
 end
 
 local function possible_straights(cards)
-  -- card.base.id 2'den 14'e gidiyo
-  local ranked_cards = filter(cards, function (c) return get_visible_rank(c) ~= "stone" end)
+  local ranked_cards = filter(cards, function(c) return get_visible_rank(c) ~= "stone" end)
   local cards_by_rank = {}
-  for _, card in pairs(cards) do
+  for _, card in pairs(ranked_cards) do
     local rank = get_visible_rank(card)
     if not cards_by_rank[rank] then
       cards_by_rank[rank] = card
@@ -295,10 +294,10 @@ local function possible_straights(cards)
       end
     end
   end
-  -- we save 
+  -- we save
   -- 2,3,4,5 consecutive card runs
   -- ++-++ pattern
-  
+
   local fives = {}
   local fours = {}
   local threes = {}
@@ -306,14 +305,14 @@ local function possible_straights(cards)
   local two_two = {}
   local current_run = {}
   local previous_run = {}
-  if cards_by_rank[2] then table.insert(current_run, cards_by_rank[2]) end
-  for i = 3, 15, 1 do
+  if cards_by_rank[14] then table.insert(current_run, cards_by_rank[14]) end
+  for i = 2, 15, 1 do
     if cards_by_rank[i] then
       table.insert(current_run, cards_by_rank[i])
     else
       if #current_run >= 5 then
         local hand_to_add = {}
-        for i = #current_run, #current_run-5, -1 do
+        for i = #current_run, #current_run - 5, -1 do
           table.insert(hand_to_add, current_run[i])
         end
         table.insert(fives, hand_to_add)
@@ -353,7 +352,6 @@ local function possible_straights(cards)
   res = merge(res, threes)
   res = merge(res, twos)
   return res
-
 end
 
 local function possible_flushes(cards)
