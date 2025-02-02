@@ -71,6 +71,7 @@ fhotkey.current_mod.config_tab = function()
         nodes = {
           create_keybind_box(config.flush_keys, "Select flushes"),
           create_keybind_box(config.oak_keys, "5-4-3 of a kinds"),
+          create_keybind_box(config.str_keys, "Straights"),
           create_keybind_box(config.invert_keys, "Invert selection"),
           create_keybind_box(config.play_hand_keys, "Play Hand"),
           create_keybind_box(config.discard_hand_keys, "Discard Hand"),
@@ -84,7 +85,7 @@ local is_catching_key = false
 local function get_visible_rank(card)
   if card.ability.effect == "Stone Card" then return "stone" end
   if card.facing == 'back' then return "stone" end
-  return card.base.id -- return card.base.id seems better
+  return card.base.id
 end
 
 local function get_visible_suit(card)
@@ -277,6 +278,82 @@ local function are_ranks_same(hand1, hand2)
     if not (h1_rank_counts[k] == v) then return false end
   end
   return true
+end
+
+local function possible_straights(cards)
+  -- card.base.id 2'den 14'e gidiyo
+  local ranked_cards = filter(cards, function (c) return get_visible_rank(c) ~= "stone" end)
+  local cards_by_rank = {}
+  for _, card in pairs(cards) do
+    local rank = get_visible_rank(card)
+    if not cards_by_rank[rank] then
+      cards_by_rank[rank] = card
+    else
+      -- only hold the best card in each rank
+      if calculate_importance(card, true) > calculate_importance(cards_by_rank[rank]) then
+        cards_by_rank[rank] = card
+      end
+    end
+  end
+  -- we save 
+  -- 2,3,4,5 consecutive card runs
+  -- ++-++ pattern
+  
+  local fives = {}
+  local fours = {}
+  local threes = {}
+  local twos = {}
+  local two_two = {}
+  local current_run = {}
+  local previous_run = {}
+  if cards_by_rank[2] then table.insert(current_run, cards_by_rank[2]) end
+  for i = 3, 15, 1 do
+    if cards_by_rank[i] then
+      table.insert(current_run, cards_by_rank[i])
+    else
+      if #current_run >= 5 then
+        local hand_to_add = {}
+        for i = #current_run, #current_run-5, -1 do
+          table.insert(hand_to_add, current_run[i])
+        end
+        table.insert(fives, hand_to_add)
+        current_run = {}
+        previous_run = {}
+      elseif #current_run == 4 then
+        table.insert(fours, current_run)
+        current_run = {}
+        previous_run = {}
+      elseif #current_run == 3 then
+        table.insert(threes, current_run)
+        current_run = {}
+        previous_run = {}
+      elseif #current_run == 2 then
+        if #previous_run == 2 then
+          table.insert(two_two, merge(current_run, previous_run))
+        end
+        table.insert(twos, current_run)
+        previous_run = current_run
+        current_run = {}
+      else
+        current_run = {}
+        previous_run = {}
+      end
+    end
+  end
+  local sorter = function(x, y) return hand_importance(x) > hand_importance(y) end
+  table.sort(fives, sorter)
+  table.sort(fours, sorter)
+  table.sort(threes, sorter)
+  table.sort(two_two, sorter)
+  table.sort(twos, sorter)
+  local res = {}
+  res = merge(res, fives)
+  res = merge(res, fours)
+  res = merge(res, two_two)
+  res = merge(res, threes)
+  res = merge(res, twos)
+  return res
+
 end
 
 local function possible_flushes(cards)
@@ -488,20 +565,24 @@ local function handle_hotkeys(key, handle_ref)
     return
   end
   if G.STATE == G.STATES.SELECTING_HAND then
-    if not (indexOf(config.flush_keys, function(x) return x == key end) == -1) then
+    local keycomp = function(x) return x == key end
+    if not (indexOf(config.flush_keys, keycomp) == -1) then
       select_flush()
-    elseif not (indexOf(config.oak_keys, function(x) return x == key end) == -1) then
+    elseif not (indexOf(config.oak_keys, keycomp) == -1) then
       local best_hands = best_ofakinds(G.hand.cards)
       select_hand(next_best_oak(best_hands, G.hand.highlighted))
-    elseif not (indexOf(config.invert_keys, function(x) return x == key end) == -1) then
+    elseif not (indexOf(config.str_keys, keycomp) == -1) then
+      local best_hands = possible_straights(G.hand.cards)
+      select_hand(next_best_oak(best_hands, G.hand.highlighted))
+    elseif not (indexOf(config.invert_keys, keycomp) == -1) then
       invert_selection()
-    elseif not (indexOf(config.play_hand_keys, function(x) return x == key end) == -1) then
+    elseif not (indexOf(config.play_hand_keys, keycomp) == -1) then
       if #G.hand.highlighted > 0 and (not G.GAME.blind.block_play) and #G.hand.highlighted <= 5 then
         G.FUNCS.play_cards_from_highlighted()
       else
         play_sound("cancel")
       end
-    elseif not (indexOf(config.discard_hand_keys, function(x) return x == key end) == -1) then
+    elseif not (indexOf(config.discard_hand_keys, keycomp) == -1) then
       if (G.GAME.current_round.discards_left > 0) and (#G.hand.highlighted > 0) then
         G.FUNCS.discard_cards_from_highlighted()
       else
