@@ -551,6 +551,9 @@ local function bind_new_key(key, button)
 end
 
 local function handle_hotkeys(key, handle_ref)
+  if G.CONTROLLER and G.CONTROLLER.text_input_hook then
+    return handle_ref()
+  end
   key = key:sub(1, 1):upper() .. key:sub(2)
   if is_catching_key then
     if key == "Mouse1" or key == "Escape" then
