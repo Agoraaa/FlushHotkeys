@@ -85,7 +85,7 @@ local is_catching_key = false
 local function get_visible_rank(card)
   if card.ability.effect == "Stone Card" then return "stone" end
   if card.facing == 'back' then return "stone" end
-  return card.base.id
+  return string.format(card.base.id)
 end
 
 local function get_visible_suit(card)
@@ -93,6 +93,10 @@ local function get_visible_suit(card)
   if card.ability.name == "Wild Card" and not card.debuff then return "wild" end
   if card.facing == "back" then return "stone" end
   return card.base.suit
+end
+
+local function ranksuit(card)
+  return get_visible_rank(card)..get_visible_suit(card)
 end
 
 local function calculate_importance(card, is_for_play)
@@ -192,6 +196,19 @@ local function calculate_importance(card, is_for_play)
   return res
 end
 
+local function is_subset(subset, superset, hasher)
+  for k, v in pairs(subset) do
+    local found = false
+    for k2, v2 in pairs(superset) do
+      found = found or (hasher(v) == hasher(v2))
+    end
+    if not found then
+      return false
+    end
+  end
+  return true
+end
+
 local function merge(arr1, arr2)
   local res = {}
   for k, v in pairs(arr1) do
@@ -252,36 +269,9 @@ local function hand_importance(hand)
   return res
 end
 
-local function are_ranks_same(hand1, hand2)
-  local h1_ranks = map_f(hand1, get_visible_rank)
-  local h2_ranks = map_f(hand2, get_visible_rank)
-  local h1_rank_counts = {}
-  for i, v in ipairs(h1_ranks) do
-    if not h1_rank_counts[v] then
-      h1_rank_counts[v] = 0
-    end
-    h1_rank_counts[v] = h1_rank_counts[v] + 1
-  end
-  local h2_rank_counts = {}
-  for i, v in ipairs(h2_ranks) do
-    if not h2_rank_counts[v] then
-      h2_rank_counts[v] = 0
-    end
-    h2_rank_counts[v] = h2_rank_counts[v] + 1
-  end
-  for k, v in pairs(h1_rank_counts) do
-    if not h2_rank_counts[k] then return false end
-    if not (h2_rank_counts[k] == v) then return false end
-  end
-  for k, v in pairs(h2_rank_counts) do
-    if not h1_rank_counts[k] then return false end
-    if not (h1_rank_counts[k] == v) then return false end
-  end
-  return true
-end
-
 local function possible_straights(cards)
   local ranked_cards = filter(cards, function(c) return get_visible_rank(c) ~= "stone" end)
+  print(string.format(#ranked_cards))
   local cards_by_rank = {}
   for _, card in pairs(ranked_cards) do
     local rank = get_visible_rank(card)
@@ -307,18 +297,20 @@ local function possible_straights(cards)
   local previous_run = {}
   if cards_by_rank[14] then table.insert(current_run, cards_by_rank[14]) end
   for i = 2, 15, 1 do
-    if cards_by_rank[i] then
-      table.insert(current_run, cards_by_rank[i])
+    local curr_rank = string.format(i)
+    if cards_by_rank[curr_rank] then
+      table.insert(current_run, cards_by_rank[curr_rank])
     else
       if #current_run >= 5 then
         local hand_to_add = {}
-        for i = #current_run, #current_run - 5, -1 do
-          table.insert(hand_to_add, current_run[i])
+        for j = #current_run, #current_run - 5, -1 do
+          table.insert(hand_to_add, current_run[j])
         end
         table.insert(fives, hand_to_add)
         current_run = {}
         previous_run = {}
       elseif #current_run == 4 then
+
         table.insert(fours, current_run)
         current_run = {}
         previous_run = {}
@@ -373,29 +365,49 @@ local function possible_flushes(cards)
   local res = {}
   for k, v in pairs(dictionary) do
     table.sort(v, function(x, y) return calculate_importance(x, true) > calculate_importance(y, true) end)
-    table.insert(res, take(v, 5))
+    local flush_hand = take(v, 5)
+    if #flush_hand < 5 and #wilds > 0 then
+      flush_hand = merge(flush_hand, take(wilds, 5-#flush_hand))
+    end
+    table.insert(res, flush_hand)
   end
   table.sort(res, function(x, y)
     return ((#x == #y) and (hand_importance(x) > hand_importance(y)))
         or #x > #y
   end)
-  return {
-    wild_cards = wilds,
-    hands = res
-  }
+  return res
 end
 
-local function next_best_oak(possible_hands, curr_hand)
-  if #possible_hands == 1 then
-    return possible_hands[1]
-  end
-  if #possible_hands == 0 then
-    return {}
-  end
-  for i = 1, (#possible_hands - 1) do
-    if are_ranks_same(possible_hands[i], curr_hand) then
-      return possible_hands[i + 1]
+local function next_best_hand(possible_hands, curr_hand, hasher)
+  print("#Hands, #Cards_in_hand:")
+  print(string.format(#possible_hands).."|"..string.format(#curr_hand))
+  if #possible_hands == 1 then return possible_hands[1] end
+  if #possible_hands == 0 then return {} end
+  if #curr_hand == 0 then return possible_hands[1] end
+
+  -- if curr_hand is found in possible hands, select the next one
+  -- otherwise, if only 1 card is selected, select best hand containing it
+  -- otherwise, select best hand containing it (but is slower)
+  local best_superset = false
+  for i = 1, #possible_hands do
+    if is_subset(curr_hand, possible_hands[i], hasher) then
+      if #curr_hand == #possible_hands[i] then
+        if i == #possible_hands then
+          return possible_hands[1]
+        else
+          return possible_hands[i+1]
+        end
+      elseif #curr_hand == 1 then
+        return possible_hands[i]
+      else
+        if not best_superset then
+          best_superset = possible_hands[i]
+        end
+      end
     end
+  end
+  if best_superset then
+    return best_superset
   end
   return possible_hands[1]
 end
@@ -493,53 +505,8 @@ end
 
 local function select_flush()
   local possible_hands = possible_flushes(G.hand.cards)
-  local highlighted_wildlesses = filter(G.hand.highlighted, function(k) return get_visible_suit(k) ~= "wild" end)
-  if not next(possible_hands.hands) then
-    if next(possible_hands.wild_cards) then
-      select_hand(take(possible_hands.wild_cards, 5))
-    end
-    return
-  end
-  if #G.hand.highlighted == 0 then
-    local sel_hand = possible_hands.hands[1]
-    select_hand(merge(sel_hand, take(possible_hands.wild_cards, 5 - #sel_hand)))
-    return
-  else
-    if #highlighted_wildlesses == 0 then
-      -- every card in hand is wild
-      local sel_hand = possible_hands.hands[1]
-      select_hand(merge(sel_hand, take(possible_hands.wild_cards, 5 - #sel_hand)))
-      return
-    end
-    local non_wild_suit = get_visible_suit(first(highlighted_wildlesses))
-    local remaining_suits = filter(highlighted_wildlesses,
-      function(s) return get_visible_suit(s) ~= non_wild_suit end)
-    if next(remaining_suits) then
-      -- 2 different suits picked, just pick the usual
-      local sel_hand = possible_hands.hands[1]
-      select_hand(merge(sel_hand, take(possible_hands.wild_cards, 5 - #sel_hand)))
-      return
-    end
-    local curr_ind = indexOf(possible_hands.hands,
-      function(k) return get_visible_suit(k[1]) == non_wild_suit end)
-    print(non_wild_suit)
-    if #highlighted_wildlesses == #possible_hands.hands[curr_ind] then
-      if curr_ind == #possible_hands.hands then
-        local sel_hand = possible_hands.hands[1]
-        select_hand(merge(sel_hand, take(possible_hands.wild_cards, 5 - #sel_hand)))
-        return
-      else
-        local sel_hand = possible_hands.hands[curr_ind + 1]
-        select_hand(merge(sel_hand, take(possible_hands.wild_cards, 5 - #sel_hand)))
-        return
-      end
-    else
-      print("wadafak ???")
-      local sel_hand = possible_hands.hands[1]
-      select_hand(merge(sel_hand, take(possible_hands.wild_cards, 5 - #sel_hand)))
-      return
-    end
-  end
+  local wildless_hand = filter(G.hand.highlighted, function (c) return get_visible_suit(c) ~= "wild" end)
+  select_hand(next_best_hand(possible_hands, wildless_hand, get_visible_suit))
 end
 
 local function bind_new_key(key, button)
@@ -571,10 +538,10 @@ local function handle_hotkeys(key, handle_ref)
       select_flush()
     elseif not (indexOf(config.oak_keys, keycomp) == -1) then
       local best_hands = best_ofakinds(G.hand.cards)
-      select_hand(next_best_oak(best_hands, G.hand.highlighted))
+      select_hand(next_best_hand(best_hands, G.hand.highlighted, get_visible_rank))
     elseif not (indexOf(config.str_keys, keycomp) == -1) then
       local best_hands = possible_straights(G.hand.cards)
-      select_hand(next_best_oak(best_hands, G.hand.highlighted))
+      select_hand(next_best_hand(best_hands, G.hand.highlighted, get_visible_rank))
     elseif not (indexOf(config.invert_keys, keycomp) == -1) then
       invert_selection()
     elseif not (indexOf(config.play_hand_keys, keycomp) == -1) then
