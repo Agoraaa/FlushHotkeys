@@ -410,7 +410,7 @@ local function possible_straights(cards)
     else
       if #current_run >= 5 then
         local hand_to_add = {}
-        for j = #current_run, #current_run - 5, -1 do
+        for j = #current_run, #current_run - 4, -1 do
           table.insert(hand_to_add, current_run[j])
         end
         table.insert(fives, hand_to_add)
