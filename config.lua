@@ -1,18 +1,20 @@
 return {
-    ["flush_keys"] = {
+    ["best_hand_keys"] = {
         key1 = "F",
-        key2 = "Scroll Down",
+        key2 = nil,
+        key1conf = {
+            accept_flush = true,
+            accept_str = true,
+            accept_oak = true,
+        },
+        key2conf = {
+            accept_flush = true,
+            accept_str = false,
+            accept_oak = true,
+        },
     },
     ["invert_keys"] = {
         key1 = "S",
-        key2 = "Mouse3",
-    },
-    ["oak_keys"] = {
-        key1 = "D",
-        key2 = "Scroll Up",
-    },
-    ["str_keys"] = {
-        key1 = "H", -- h for hetero f for flush
         key2 = nil,
     },
     ["play_hand_keys"] = {
