@@ -5,8 +5,8 @@
     "main_file": "FlushHotkeys.lua",
 	"author": ["Agoraaa"],
     "prefix": "fhotkey",
-	"description": "Hotkeys for selecting most hand types. Use config to rebind them. Press the key multiple times to cycle through options.",
+	"description": "Hotkeys for selecting most hand types. Use config to rebind them. Press the key multiple times to cycle through options. You can also select a card and press the hotkey to find best hand containing it.",
 	"priority": 0,
-    "version": "1.0.3",
+    "version": "1.0.4",
 	"dependencies": []
 }
