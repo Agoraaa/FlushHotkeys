@@ -1,7 +1,7 @@
 return {
     ["best_hand_keys"] = {
         key1 = "F",
-        key2 = nil,
+        key2 = "Scroll Down",
         key1conf = {
             accept_flush = true,
             accept_str = true,
@@ -9,13 +9,13 @@ return {
         },
         key2conf = {
             accept_flush = true,
-            accept_str = false,
+            accept_str = true,
             accept_oak = true,
         },
     },
     ["invert_keys"] = {
-        key1 = "S",
-        key2 = nil,
+        key1 = "Scroll Up",
+        key2 = "S",
     },
     ["play_hand_keys"] = {
         key1 = nil,
