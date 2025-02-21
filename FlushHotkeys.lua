@@ -402,7 +402,7 @@ local function possible_straights(cards)
   local two_two = {}
   local current_run = {}
   local previous_run = {}
-  if cards_by_rank[14] then table.insert(current_run, cards_by_rank[14]) end
+  if cards_by_rank["14"] then table.insert(current_run, cards_by_rank["14"]) end
   for i = 2, 15, 1 do
     local curr_rank = string.format(i)
     if cards_by_rank[curr_rank] then
