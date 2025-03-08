@@ -698,6 +698,12 @@ F.Controller_key_press_update = function(self, key, dt)
   F.handle_hotkeys(key, function() F.keyupdate_ref(self, key, dt) end)
 end
 
-love.wheelmoved = F.love_wheelmoved
-love.mousepressed = F.love_mousepressed
-Controller.key_press_update = F.Controller_key_press_update
+
+if
+  -- backwards compat with previous versions, that will have this `== nil`
+  config.apply_input_hooks ~= false
+then
+  love.wheelmoved = F.love_wheelmoved
+  love.mousepressed = F.love_mousepressed
+  Controller.key_press_update = F.Controller_key_press_update
+end
