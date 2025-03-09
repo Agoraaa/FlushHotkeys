@@ -6,6 +6,7 @@
         "Controller",
         "UIBox_button",
         "create_toggle",
-        "play_sound"
+        "play_sound",
+        "find_joker"
     ]
 }

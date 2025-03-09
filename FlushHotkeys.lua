@@ -454,6 +454,7 @@ end
 F.possible_flushes = function (cards)
   local dictionary = {}
   local wilds = {}
+
   for i, v in pairs(cards) do
     local suit = F.get_visible_suit(v)
     if suit == "wild" then
@@ -464,6 +465,13 @@ F.possible_flushes = function (cards)
       end
       table.insert(dictionary[suit], v)
     end
+  end
+
+  if next(find_joker("Smeared Joker")) then
+    dictionary = {
+      black = F.merge(dictionary.Spades or {}, dictionary.Clubs or {}),
+      red = F.merge(dictionary.Hearts or {}, dictionary.Diamonds or {})
+    }
   end
   table.sort(wilds, function(x, y) return F.calculate_importance(x, true) > F.calculate_importance(y, true) end)
 
