@@ -24,5 +24,6 @@ return {
     ["discard_hand_keys"] = {
         key1 = nil,
         key2 = nil,
-    }
+    },
+    ["apply_input_hooks"] = true,
 }

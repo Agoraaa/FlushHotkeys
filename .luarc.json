@@ -1,0 +1,11 @@
+{
+    "diagnostics.globals": [
+        "G",
+        "fhotkey",
+        "SMODS",
+        "Controller",
+        "UIBox_button",
+        "create_toggle",
+        "play_sound"
+    ]
+}
