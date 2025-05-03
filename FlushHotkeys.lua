@@ -89,6 +89,26 @@ F.create_keybind_box = function (module, description)
           })
         },
       },
+      {
+        n = G.UIT.C,
+        config = { padding = 0.05, align = "cm" },
+        nodes = {
+          UIBox_button({
+            label = { module.key3 or "None" },
+            align = "cm",
+            col = true,
+            colour = G.C.Mult,
+            scale = 0.35,
+            maxw=3,
+            minh = 0.45,
+            ref_table = {
+              configs = module,
+              key = "key3"
+            },
+            button = "fhotkey_key_change",
+          })
+        },
+      },
     }
   }
 end
@@ -147,7 +167,27 @@ F.create_keybind_toggle = function (module, field, description)
 
           }
         } }
-      }
+      },
+      {
+        n = G.UIT.C,
+        config = { align = "cm", padding = 0.05, minw=2, },
+        nodes = {
+          {
+            n = G.UIT.R,
+            config = { align = "cm" },
+            nodes = {
+
+              create_toggle({
+                label = "",
+                w = 0,
+                align = "cm",
+                ref_table = module.key3conf,
+                ref_value = field,
+              }),
+            }
+          }
+        }
+      },
     }
   }
 end
@@ -654,6 +694,8 @@ F.handle_hotkeys = function (key, handle_ref)
       F.select_best_hand(G.hand.cards, config.best_hand_keys.key1conf)
     elseif key == config.best_hand_keys.key2 then
       F.select_best_hand(G.hand.cards, config.best_hand_keys.key2conf)
+    elseif key == config.best_hand_keys.key3 then
+      F.select_best_hand(G.hand.cards, config.best_hand_keys.key3conf)
     elseif not (F.indexOf(config.invert_keys, keycomp) == -1) then
       F.invert_selection()
     elseif not (F.indexOf(config.play_hand_keys, keycomp) == -1) then
