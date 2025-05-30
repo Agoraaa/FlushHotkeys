@@ -219,6 +219,7 @@ local is_catching_key = false
 
 F.get_visible_rank = function (card)
   if card.ability.effect == "Stone Card" then return "stone" end
+  if SMODS.has_no_rank(card) == true then return "stone" end
   if card.facing == 'back' then return "stone" end
   return string.format(card.base.id)
 end
@@ -226,6 +227,7 @@ end
 F.get_visible_suit = function (card)
   if card.ability.effect == "Stone Card" then return "stone" end
   if card.ability.name == "Wild Card" and not card.debuff then return "wild" end
+  if SMODS.has_no_suit(card) == true then return "stone" end
   if card.facing == "back" then return "stone" end
   return card.base.suit
 end
