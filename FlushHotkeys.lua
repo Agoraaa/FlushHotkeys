@@ -668,6 +668,9 @@ F.invert_selection = function ()
 end
 
 F.bind_new_key = function (key, button)
+  if key == "Escape" then
+    key = "None"
+  end
   local button_text = button.children[1].children[1]
   button_text.config.text_drawable = nil
   button_text.config.text = key
@@ -681,7 +684,7 @@ F.handle_hotkeys = function (key, handle_ref)
   end
   key = key:sub(1, 1):upper() .. key:sub(2)
   if is_catching_key then
-    if key == "Mouse1" or key == "Escape" then
+    if key == "Mouse1" then
     else
       F.bind_new_key(key, is_catching_key)
     end
